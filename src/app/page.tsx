@@ -1,69 +1,95 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { RailMap } from "@/components/RailMap";
+import { ChronotrainsSidebar } from "@/components/ChronotrainsSidebar";
+import { ChronotrainsHeader } from "@/components/ChronotrainsHeader";
+import { POLAND_CITIES, CITY_MAP } from "@/data/cities";
+import { DestinationRouteSummary } from "@/types/rail";
 
 export default function Home() {
+  const [originCityId, setOriginCityId] = useState<string>("warsaw");
+  const [maxTravelHours, setMaxTravelHours] = useState<number>(5.0);
+  const [maxPricePln, setMaxPricePln] = useState<number>(65);
+  const [directOnly, setDirectOnly] = useState<boolean>(false);
+  const [weekendOnly, setWeekendOnly] = useState<boolean>(false);
+  const [touristOnly, setTouristOnly] = useState<boolean>(false);
+
+  const [destinations, setDestinations] = useState<DestinationRouteSummary[]>([]);
+  const [selectedDestCityId, setSelectedDestCityId] = useState<string | null>(null);
+
+  const originCity = useMemo(() => CITY_MAP.get(originCityId) || POLAND_CITIES[0], [originCityId]);
+
+  // Fetch reachable destinations with 2-week lowest fares
+  const fetchDestinations = useCallback(async () => {
+    try {
+      const url = `/api/cities/${originCityId}/destinations?maxDurationHours=${maxTravelHours}&maxPricePln=${maxPricePln}&directOnly=${directOnly}&weekendOnly=${weekendOnly}&touristOnly=${touristOnly}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setDestinations(data.destinations || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch destinations:", err);
+    }
+  }, [originCityId, maxTravelHours, maxPricePln, directOnly, weekendOnly, touristOnly]);
+
+  useEffect(() => {
+    fetchDestinations();
+  }, [fetchDestinations]);
+
+  const handleSelectOrigin = (cityId: string) => {
+    setOriginCityId(cityId);
+    setSelectedDestCityId(null);
+  };
+
+  const handleSelectDestination = (cityId: string) => {
+    if (cityId === originCityId) return;
+    setSelectedDestCityId(cityId);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="relative w-screen h-screen overflow-hidden bg-[#edf2f7] flex flex-col font-sans">
+      
+      {/* Top Chronotrains Header */}
+      <ChronotrainsHeader />
+
+      {/* Main Map & Floating Controls Area */}
+      <div className="relative flex-1 w-full h-full overflow-hidden">
+        {/* Unified Left Sidebar in Chronotrains style */}
+        <ChronotrainsSidebar
+          cities={POLAND_CITIES}
+          originCity={originCity}
+          onSelectOrigin={handleSelectOrigin}
+          destinations={destinations}
+          selectedDestCityId={selectedDestCityId}
+          onSelectDestination={handleSelectDestination}
+          onClearDestination={() => setSelectedDestCityId(null)}
+          maxTravelHours={maxTravelHours}
+          onMaxTravelHoursChange={setMaxTravelHours}
+          maxPricePln={maxPricePln}
+          onMaxPriceChange={setMaxPricePln}
+          directOnly={directOnly}
+          onDirectOnlyChange={setDirectOnly}
+          weekendOnly={weekendOnly}
+          onWeekendOnlyChange={setWeekendOnly}
+          touristOnly={touristOnly}
+          onTouristOnlyChange={setTouristOnly}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        {/* Main MapLibre Viewport centered on Poland with Isochrone reach rings */}
+        <div className="w-full h-full relative">
+          <RailMap
+            cities={POLAND_CITIES}
+            originCity={originCity}
+            destinations={destinations}
+            selectedDestCityId={selectedDestCityId}
+            onSelectCity={handleSelectDestination}
+            maxTravelHours={maxTravelHours}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
     </div>
   );
 }
