@@ -6,6 +6,7 @@ import { ChronotrainsSidebar } from "@/components/ChronotrainsSidebar";
 import { ChronotrainsHeader } from "@/components/ChronotrainsHeader";
 import { POLAND_CITIES, CITY_MAP } from "@/data/cities";
 import { DestinationRouteSummary } from "@/types/rail";
+import { getFilteredDestinations } from "@/lib/destinations-provider";
 
 export default function Home() {
   const [originCityId, setOriginCityId] = useState<string>("warsaw");
@@ -20,23 +21,25 @@ export default function Home() {
 
   const originCity = useMemo(() => CITY_MAP.get(originCityId) || POLAND_CITIES[0], [originCityId]);
 
-  // Fetch reachable destinations with 2-week lowest fares
-  const fetchDestinations = useCallback(async () => {
+  // Compute reachable destinations with 2-week lowest fares (works offline & on GitHub Pages static export)
+  const computeDestinations = useCallback(() => {
     try {
-      const url = `/api/cities/${originCityId}/destinations?maxDurationHours=${maxTravelHours}&maxPricePln=${maxPricePln}&directOnly=${directOnly}&weekendOnly=${weekendOnly}&touristOnly=${touristOnly}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setDestinations(data.destinations || []);
-      }
+      const data = getFilteredDestinations(originCityId, {
+        maxDurationHours: maxTravelHours,
+        maxPricePln,
+        directOnly,
+        weekendOnly,
+        touristOnly
+      });
+      setDestinations(data);
     } catch (err) {
-      console.error("Failed to fetch destinations:", err);
+      console.error("Failed to compute destinations:", err);
     }
   }, [originCityId, maxTravelHours, maxPricePln, directOnly, weekendOnly, touristOnly]);
 
   useEffect(() => {
-    fetchDestinations();
-  }, [fetchDestinations]);
+    computeDestinations();
+  }, [computeDestinations]);
 
   const handleSelectOrigin = (cityId: string) => {
     setOriginCityId(cityId);
