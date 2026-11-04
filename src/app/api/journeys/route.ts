@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
-  const startDate = searchParams.get("startDate") || "2026-11-02";
+  const startDate = searchParams.get("startDate") || "2026-11-04";
 
   if (!from || !to) {
     return NextResponse.json({ error: "Missing 'from' or 'to' city IDs" }, { status: 400 });

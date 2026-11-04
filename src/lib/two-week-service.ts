@@ -415,7 +415,7 @@ function calculateBaseFareByDistance(railKm: number): number {
 }
 
 // Compute the 14-day calendar fare matrix, picking the REAL MINIMUM price on each day
-export function computeTwoWeekFareCalendar(origin: City, dest: City, startDateStr = "2026-11-02"): DayFareDeal[] {
+export function computeTwoWeekFareCalendar(origin: City, dest: City, startDateStr = "2026-11-04"): DayFareDeal[] {
   const benchmark = getRouteBenchmark(origin, dest);
   const deals: DayFareDeal[] = [];
   const baseDate = new Date(startDateStr);
@@ -470,7 +470,7 @@ export function computeTwoWeekFareCalendar(origin: City, dest: City, startDateSt
   return deals;
 }
 
-export function buildTwoWeekDestinationSummary(origin: City, dest: City, startDateStr = "2026-11-02"): DestinationRouteSummary {
+export function buildTwoWeekDestinationSummary(origin: City, dest: City, startDateStr = "2026-11-04"): DestinationRouteSummary {
   // 1. Check verified KOLEO cache first (100% verified real fares & timetables)
   const cached = getCachedRouteSummary(origin.id, dest.id);
   if (cached && cached.twoWeekDeals && cached.twoWeekDeals.length > 0) {

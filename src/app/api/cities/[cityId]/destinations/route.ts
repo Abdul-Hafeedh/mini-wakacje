@@ -20,7 +20,7 @@ export async function GET(
   const directOnly = searchParams.get("directOnly") === "true";
   const weekendOnly = searchParams.get("weekendOnly") === "true";
   const touristOnly = searchParams.get("touristOnly") === "true";
-  const startDate = searchParams.get("startDate") || "2026-11-02";
+  const startDate = searchParams.get("startDate") || "2026-11-04";
 
   const maxDurationMinutes = Math.round(maxDurationHours * 60);
 

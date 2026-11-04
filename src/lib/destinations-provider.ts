@@ -23,7 +23,7 @@ export function getFilteredDestinations(
   const directOnly = options.directOnly ?? false;
   const weekendOnly = options.weekendOnly ?? false;
   const touristOnly = options.touristOnly ?? false;
-  const startDate = options.startDate ?? "2026-11-02";
+  const startDate = options.startDate ?? "2026-11-04";
 
   const maxDurationMinutes = Math.round(maxDurationHours * 60);
   const destinations: DestinationRouteSummary[] = [];
